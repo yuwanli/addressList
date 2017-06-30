@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>我的活动</title>
+    <link rel="stylesheet" type="text/css"  href="http://mat1.gtimg.com/zj/maxbao/app/css/style.min.css" media="all">
+    <script type="text/javascript" src="http://mat1.gtimg.com/www/asset/lib/jquery/jquery/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="http://zj.qq.com/maxbao/reai/js/jquery.tmpl.min.js"></script>
+    <script type="text/javascript" src="http://zj.qq.com/maxbao/activity/activities/spin.min.js"></script>
+    <script type="text/javascript" src="http://zj.qq.com/maxbao/activity/activities/iscroll.js"></script>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+    <meta content="telephone=no" name="format-detection" />
+
+    <script>
+        var _ip = '';
+        var _qq = '';
+        var sSource = 'appClient',sUid;
+
+        //获取ip地址
+        jbbLoadScript=function(url,callback,charset){
+            var s=document.createElement("script");s.type = "text/javascript";if (charset) s.charset=charset;
+            if (s.readyState){s.onreadystatechange = function(){if (s.readyState == "loaded" || s.readyState == "complete"){s.onreadystatechange = null;if (callback) callback();}};}
+            else {s.onload = function(){if (callback) callback();};}
+            s.src = url;document.getElementsByTagName("head")[0].appendChild(s);
+        };
+
+        jbbLoadScript("http://fw.qq.com/ipaddress",function(){
+            _ip = IPData[0];
+        }, "gbk");
+
+        //上报boss数据
+        function send_boss(sbiz,sop,spageid,spos){
+            _url = window.location.href;
+            $.post("http://btrace.qq.com/kvcollect", {
+                'BossId':'2759', 'Pwd': '0','sIp':_ip,'iQQ':_qq,'sBiz':sbiz,'sOp':sop,'iSta':0,'iFlow':signID,'sUrl':_url,'sRef':_url,'sPageId':spageid,'sPos':spos,'sSource':sSource, 'sUid':sUid, '_dc': Math.random()});
+        }
+        setTimeout(function() {
+            if (window.TencentNews && window.TencentNews.setWebViewBounces) {
+                window.TencentNews.setWebViewBounces(false);
+            }
+        }, 500);
+    </script>
+
+
+</head>
+
+<body>
+<div class="top-nav my-nav">
+    <div class="nav-box nv time-nav" data-nav="nav-time">
+        <div class="nav-bar"><span class="nav-words">时间</span><span class="icon nav-arrow"></span></div>
+    </div>
+    <div class="nav-box nv type-nav"  data-nav="nav-type">
+        <div class="nav-bar"><span class="nav-words">分类</span><span class="icon nav-arrow"></span></div>
+    </div>
+    <div class="nav-cont nav-time">
+        <div class="selector" id="time-list">
+            <div class="sel-cont">
+                <a class="sel-box curr-sel" href="javascript:;" data-time="all"><span class="sel-type">全部</span></a>
+                <a class="sel-box" href="javascript:;" data-time="weekend"><span class="sel-type">周末</span></a>
+                <a class="sel-box" href="javascript:;" data-time="week"><span class="sel-type">本周</span></a>
+
+                <a class="sel-box" href="javascript:;" data-time="month"><span class="sel-type">本月</span></a>
+            </div>
+        </div>
+    </div>
+    <div class="nav-cont nav-type">
+        <div class="selector" id="type-list">
+            <div class="sel-cont">
+                <a class="sel-box curr-sel" href="javascript:;" data-type="all"><span class="sel-type">全部</span></a>
+                <a class="sel-box" href="javascript:;" data-type="food"><span class="sel-type">美食</span></a>
+                <a class="sel-box" href="javascript:;" data-type="fashion"><span class="sel-type">时尚</span></a>
+                <a class="sel-box" href="javascript:;" data-type="marry"><span class="sel-type">结婚</span></a>
+                <a class="sel-box" href="javascript:;" data-type="child"><span class="sel-type">亲子</span></a>
+                <a class="sel-box" href="javascript:;" data-type="travel"><span class="sel-type">旅游</span></a>
+                <a class="sel-box" href="javascript:;" data-type="edu"><span class="sel-type">教育</span></a>
+                <a class="sel-box" href="javascript:;" data-type="home"><span class="sel-type">家居</span></a>
+                <a class="sel-box" href="javascript:;" data-type="health"><span class="sel-type">健康</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+<a href="javascript:;" class="black-layer"></a>
+<div id="spin-box" ></div>
+<div id="main_content" class="content">
+    <div id="scroller" class="scoller">
+
+        <div class="act-list" id="act-list">
+
+        </div>
+
+        <div id="pullUp">
+            <span class="pullUpIcon"></span><span class="pullUpLabel">上拉加载更多...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    var GYPage={
+        getParam:function(a){var b=location.search.substr(1,location.search.length),c=this.strToObj(decodeURIComponent(b));return a?c[a]:c},
+        getHash:function(e){var t = e ? e : decodeURIComponent(location.hash), n = [], r = {};return  t.replace(/[\.\?'"><:;,\[\]\{\}]/ig, ""), n = t.split("/"), n.length==1 && (n.unshift('#iwen'), n[1]=n[1].substring(1)), n[1].indexOf('=') < 0 && (n[1] = 'p='+n[1]), n.length > 0 && (r.pageId = n.splice(0,1)[0].substring(1), r.urlParams = n.length > 0 ? this.strToObj(n.join("/"), !0) : {}),r['pageId'] == "iwen" && (r.pageId = r.urlParams['p']), r;},
+        strToObj:function(a,b){var e,f,g,c=[],d={};for(a=a.replace(/\?/g,"&"),c=a.split("&"),g=c.length,e=0;g>e;e++)c[e].indexOf("=")<0||(f=c[e].split("="),d[f[0]]=b?decodeURIComponent(f[1]):f[1]);return d}};
+
+    var signID = GYPage.getParam('logsign');
+    var mainScroll,typeScroll,
+            pullUpEl, pullUpOffset,upData,
+            generatedCount = 0;
+    var opts = {
+        lines: 12, // The number of lines to draw
+        length: 3, // The length of each line
+        width: 2, // The line thickness
+        radius: 5, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        direction: 1, // 1: clockwise, -1: counterclockwise
+        color: '#ccc', // #rgb or #rrggbb or array of colors
+        speed: 1, // Rounds per second
+        trail: 100, // Afterglow percentage
+        hwaccel: false, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: '50%', // Top position relative to parent
+        left: '50%' // Left position relative to parent
+    };
+    var target = document.getElementById('spin-box');
+    $('#spin-box').show();
+    var spinner = new Spinner(opts).spin(target);
+    var pageNum = 1,pageType='all',pageTime='all',newType='all',newTime='all';
+
+    var postStatus = true;
+
+    $('#act-list').css('min-height',$(window).height()-69);
+
+    function pullUpAction() {
+        if(postStatus) {
+            postStatus = false;
+            setTimeout(function () {
+
+                url = 'http://vip.zjqq.mobi/app/mylist/?page='+ pageNum +'&signid='+ signID + '&type=' + pageType + '&time=' + pageTime;
+                $.ajax({
+                    type: "get",
+                    async: false,
+                    url: url,
+                    dataType: "jsonp",
+                    jsonpCallback: "success_jsonpCallback",
+                    error: function (xmlHttp, status, errorThrown) {
+                    },
+                    success: function (data) {
+                        /*lilylv start*/
+                        if(data.data=='empty' && pageNum == 1){
+                            $('#act-list').html('<h1 class="no-more">你还没报名活动，赶快去报名吧！</h1>');
+                            mainScroll.refresh();
+                            pullUpEl.querySelector('.pullUpLabel').innerHTML = '没有更多啦...';
+                        }
+                        else if(data.data=='empty' && pageNum !== 1){
+                            mainScroll.refresh();
+                            pullUpEl.querySelector('.pullUpLabel').innerHTML = '没有更多啦...';
+                        }else{
+                            /*lilylv end*/
+                            $('#actArchiveTemplate').tmpl(data.data).appendTo('#act-list');
+                            if(Object.keys(data.data).length >= 6){
+                                $('#pullUp').show();
+                            }
+                            mainScroll.refresh();
+                            $('#spin-box').hide();
+                            spinner.stop();
+                            pageNum++;
+                            /*lilylv start*/
+                        }
+                        /*lilylv end*/
+
+
+                    }
+                });
+                postStatus = true;	// Remember to refresh when contents are loaded (ie: on ajax completion)
+            }, 800);	// <-- Simulate network congestion, remove setTimeout from production!
+        }
+    }
+    function loaded() {
+        addBoss();
+        pullUpEl = document.getElementById('pullUp');
+        pullUpOffset = pullUpEl.offsetHeight;
+        typeScroll = new iScroll('type-list', {
+            vScrollbar: false
+        });
+        mainScroll = new iScroll('main_content', {
+            useTransition: true,
+            vScrollbar: false,
+            onRefresh: function () {
+                if (pullUpEl.className.match('loading')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多...';
+                }
+                setTimeout(function(){
+                    spinner.stop();
+                    $('#spin-box').hide();
+                },1000);
+            },
+            onScrollMove: function () {
+                if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'flip';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '放开刷新....';
+                    this.maxScrollY = this.maxScrollY;
+                } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多....';
+                    this.maxScrollY = pullUpOffset;
+                }
+            },
+            onScrollEnd: function () {
+                if (pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'loading';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中...';
+                    pullUpAction();	// Execute custom function (ajax call?)
+                }
+            }
+        });
+        pullUpAction();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(loaded, 200); }, false);
+
+    $(document).on('click', '.sel-top',function(){
+
+        var hi = $(this).siblings('.sel-cont');
+        var down = $(this).find('.sel-down');
+        if(down.hasClass('up')){
+            down.removeClass('up');
+        }else{
+            down.addClass('up');
+        }
+        hi.slideToggle(function(){
+            popScroll.refresh();
+        });
+    });
+    $(document).on('click', '.sel-box',function(){
+        var otherSel = $(this).siblings('.sel-box');
+        var pType = $(this).attr('data-type');
+        var pTime = $(this).attr('data-time');
+        var navType;
+        if($(this).hasClass('curr-sel')){
+            return;
+        }else{
+            otherSel.removeClass('curr-sel');
+            $(this).addClass('curr-sel');
+            if(pType){
+                newType = pType;
+                navType = "type";
+            }else if(pTime){
+                newTime = pTime;
+                navType = "time";
+            }
+        }
+        updateList(navType);
+    });
+    $(document).on('touchend', '.nv',function(){
+        var nav = $(this).attr('data-nav');
+        if($(this).hasClass('curr-nav')){
+            $( '.' + nav).hide();
+            $( '.black-layer').hide();
+            $(this).removeClass('curr-nav');
+        }else{
+            $( '.nav-cont').hide();
+            $( '.black-layer').show();
+            $( '.' + nav).show();
+            typeScroll.refresh();
+            $(this).addClass('curr-nav');
+            $(this).siblings('.nav-box').removeClass('curr-nav');
+        }
+    });
+    $(document).on('click', '.black-layer',function(){
+        hideNav();
+    });
+    $(document).on('touchend', '.all-act',function(){
+        $('.pop-window').fadeIn('fast',function(){
+            popScroll.refresh();
+        });
+    });
+    function hideNav(){
+        $( '.nav-cont').hide();
+        $( '.black-layer').hide();
+        $('.nav-box').removeClass('curr-nav');
+    }
+    function updateList(navType){
+        var selectedWords = $('#'+navType+'-list .curr-sel .sel-type').html();
+        var loadStatus = false;
+        if(selectedWords == '全部'){
+            if(navType == 'time')
+                selectedWords = '时间';
+            else
+                selectedWords = '分类';
+        }
+        $('.'+navType+'-nav .nav-words').html(selectedWords);
+        if(pageTime !== newTime){
+            pageTime = newTime;
+            loadStatus = true;
+        }
+        if(pageType !== newType){
+            pageType = newType;
+            loadStatus = true;
+        }
+        if(loadStatus){
+            $('#top-box').html('');
+            $('#act-list').html('');
+            $('#spin-box').show(function(){
+                mainScroll.refresh();
+                spinner.spin(target);
+            });
+            pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多...';
+            pageNum = 1;
+            $('#pullUp').hide();
+            pullUpAction();
+        }
+        hideNav();
+    }
+
+    //滑动到顶部
+    function _jsBridgePageScroll2Top_(){
+        mainScroll.scrollTo(0,0,500);
+    }
+
+    function addBoss(){
+        if(window.TencentNews){
+            sSource = 'appClient';
+        }else if(typeof WeixinJSBridge !== 'undefined'){
+            sSource = 'weixinClient';
+        }else{
+            sSource = 'Others';
+        }
+        if(localStorage.getItem('zj_qq_news_suid')){
+            sUid = localStorage.getItem('zj_qq_news_suid');
+        }else{
+            var timestamp = new Date().getTime();
+            sUid = timestamp + RndNum(4);
+            localStorage.setItem('zj_qq_news_suid',sUid);
+        }
+        send_boss('','','myActivity','');//活动详情页puv
+        function RndNum(n){
+            var rnd="";
+            for(var i=0;i<n;i++)
+                rnd+=Math.floor(Math.random()*10);
+            return rnd;
+        }
+    }
+</script>
+<script id="actArchiveTemplate" type="text/x-jquery-tmpl">
+<a href="http://zj.qq.com/APP/android/act_detail.htm?deal_id=${id}&formshow=no" class="nac-box">
+    <div class="nac-img" style="background-image:url('${logo}');">
+        <div class="notice-box {{if status == 0}}finished{{/if}}"></div>
+    </div>
+    <div class="nac-title">
+        <div class="nac-title-cont">${activity_name}</div>
+        {{if activity_ifpay == 1}}
+            <div class="need-pay">本活动需要支付:  ￥${activity_money}</div>
+        {{/if}}
+    </div>
+    <div class="nac-bottom">
+        <div class="nac-line">
+            <span class="nac-words time n-time">${activity_start_date} 至 ${activity_end_date}</span>
+        </div>
+        <div class="nac-line">
+            <span class="nac-words addr n-addr">${activity_address}</span>
+        </div>
+        <div class="apply-button">
+            详情
+        </div>
+    </div>
+</a>
+</script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <script src="http://mat1.gtimg.com/www/js/newsapp/jsapi/news.js?_tsid=1"></script>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>找活动</title>
+    <link rel="stylesheet" type="text/css"  href="http://mat1.gtimg.com/zj/maxbao/app/css/style.min.css" media="all">
+    <script type="text/javascript" src="http://mat1.gtimg.com/www/asset/lib/jquery/jquery/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="http://zj.qq.com/maxbao/reai/js/jquery.tmpl.min.js"></script>
+    <script type="text/javascript" src="http://zj.qq.com/maxbao/activity/activities/spin.min.js"></script>
+    <script type="text/javascript" src="http://zj.qq.com/maxbao/activity/activities/iscroll.js"></script>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+    <meta content="telephone=no" name="format-detection" />
+    <script>
+        /*判断是否是ios设备*/
+        /*var u = navigator.userAgent;
+         var isiOS = !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+         if(isiOS){
+         window.location.href = "http://zj.qq.com/activity.htm";
+         }*/
+        var _ip = '';
+        var sSource = 'appClient',sUid;
+
+        //获取ip地址
+        jbbLoadScript=function(url,callback,charset){
+            var s=document.createElement("script");s.type = "text/javascript";if (charset) s.charset=charset;
+            if (s.readyState){s.onreadystatechange = function(){if (s.readyState == "loaded" || s.readyState == "complete"){s.onreadystatechange = null;if (callback) callback();}};}
+            else {s.onload = function(){if (callback) callback();};}
+            s.src = url;document.getElementsByTagName("head")[0].appendChild(s);
+        };
+
+        jbbLoadScript("http://fw.qq.com/ipaddress",function(){
+            _ip = IPData[0];
+        }, "gbk");
+
+
+        //上报boss数据
+        function send_boss(sbiz,sop,spageid,spos,qq){
+            $.post("http://btrace.qq.com/kvcollect", {
+                'BossId':'2759', 'Pwd': '0','sIp':_ip,'iQQ':qq,'sBiz':sbiz,'sOp':sop,'iSta':0,'iFlow':0,'sUrl':'http://zj.qq.com/activity.htm','sRef':'http://zj.qq.com/activity.htm','sPageId':spageid,'sPos':spos,'sSource':sSource,'sUid':sUid, '_dc': Math.random()});
+        }
+        setTimeout(function() {
+            if (window.TencentNews && window.TencentNews.setWebViewBounces) {
+                window.TencentNews.setWebViewBounces(false);
+            }
+        }, 1000);
+    </script>
+</head>
+<body>
+<div class="top-nav">
+    <div class="nav-box nv time-nav" data-nav="nav-time">
+        <div class="nav-bar"><span class="nav-words">时间</span><span class="icon nav-arrow"></span></div>
+    </div>
+    <div class="nav-box nv type-nav"  data-nav="nav-type">
+        <div class="nav-bar"><span class="nav-words">分类</span><span class="icon nav-arrow"></span></div>
+    </div>
+    <div class="nav-box my-act" data-nav="nav-smart">
+        <div class="nav-bar my-bar">我的活动</div>
+    </div>
+    <div class="nav-cont nav-time">
+        <div class="selector" id="time-list">
+            <div class="sel-cont">
+                <a class="sel-box curr-sel" href="javascript:;" data-time="all"><span class="sel-type">全部</span></a>
+                <a class="sel-box" href="javascript:;" data-time="weekend"><span class="sel-type">周末</span></a>
+                <a class="sel-box" href="javascript:;" data-time="week"><span class="sel-type">本周</span></a>
+                <a class="sel-box" href="javascript:;" data-time="month"><span class="sel-type">本月</span></a>
+            </div>
+        </div>
+    </div>
+    <div class="nav-cont nav-type">
+        <div class="selector" id="type-list">
+            <div class="sel-cont">
+                <a class="sel-box curr-sel" href="javascript:;" data-type="all"><span class="sel-type">全部</span></a>
+                <a class="sel-box" href="javascript:;" data-type="food"><span class="sel-type">美食</span></a>
+                <a class="sel-box" href="javascript:;" data-type="fashion"><span class="sel-type">时尚</span></a>
+                <a class="sel-box" href="javascript:;" data-type="marry"><span class="sel-type">结婚</span></a>
+                <a class="sel-box" href="javascript:;" data-type="child"><span class="sel-type">亲子</span></a>
+                <a class="sel-box" href="javascript:;" data-type="travel"><span class="sel-type">旅游</span></a>
+                <a class="sel-box" href="javascript:;" data-type="edu"><span class="sel-type">教育</span></a>
+                <a class="sel-box" href="javascript:;" data-type="home"><span class="sel-type">家居</span></a>
+                <a class="sel-box" href="javascript:;" data-type="health"><span class="sel-type">健康</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+<a href="javascript:;" class="black-layer"></a>
+<div id="spin-box" ></div>
+<div id="main_content" class="content">
+
+    <div id="scroller" class="scoller">
+
+        <div class="act-list" id="act-list">
+
+        </div>
+
+        <div id="pullUp">
+            <span class="pullUpIcon"></span><span class="pullUpLabel">上拉加载更多...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    var mainScroll,logSign,typeScroll,
+            pullUpEl, pullUpOffset,upData,pageloaded = false,
+            generatedCount = 0;
+    var ajaxData = {};
+    var localStorage = window.localStorage;
+    var opts = {
+        lines: 12, // The number of lines to draw
+        length: 3, // The length of each line
+        width: 2, // The line thickness
+        radius: 5, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        direction: 1, // 1: clockwise, -1: counterclockwise
+        color: '#ccc', // #rgb or #rrggbb or array of colors
+        speed: 1, // Rounds per second
+        trail: 100, // Afterglow percentage
+        hwaccel: false, // Whether to use hardware acceleration
+        className: 'spinner', // The CSS class to assign to the spinner
+        zIndex: 2e9, // The z-index (defaults to 2000000000)
+        top: '50%', // Top position relative to parent
+        left: '50%' // Left position relative to parent
+    };
+    var target = document.getElementById('spin-box');
+    $('#spin-box').show();
+    var spinner = new Spinner(opts).spin(target);
+    var pageNum = 1,pageType='all',pageTime='all',newType='all',newTime='all';
+
+    var postStatus = true;
+
+    $('#act-list').css('min-height',$(window).height()-46);
+    function isWeixinLoginCallBack(re){
+        if(re=="1"){
+            goToMyActsPage('Weixin');
+        }else{
+            if (window.TencentNews && window.TencentNews.isQQLogin) {
+                window.TencentNews.isQQLogin("isQQLoginCallBack");
+            }
+        }
+    }
+    function isQQLoginCallBack(re){
+        if(re){
+            goToMyActsPage('QQ');
+        }
+    }
+    function goToMyActsPage(val){
+        var all_cookie = document.cookie;
+        if(val == 'QQ'){
+            logSign = islogin(all_cookie);
+            window.location.href="http://zj.qq.com/APP/android/act_my.htm?logsign=" + logSign;
+        }else if(val == 'Weixin'){
+            logSign = isweixin(all_cookie);
+            window.location.href="http://zj.qq.com/APP/android/act_my.htm?logsign=" + logSign;
+        }
+    }
+    function checkLoginType(){
+//        if (window.TencentNews && window.TencentNews.showNativeLoginWithType){
+//
+//        }
+        if (window.TencentNews && window.TencentNews.isWeixinLogin) {
+            window.TencentNews.isWeixinLogin("isWeixinLoginCallBack");
+        }
+    }
+    function checkLoginEndCallBack(status, params){
+        if(status == 1) {
+            checkLoginType();
+        }else{
+            $('.my-act').removeClass('curr-nav');
+        }
+    }
+    function checkLogin(status, params){
+        var prefix = 'logintype=';
+        var all_cookie = document.cookie;
+        var start = parseInt(isloginX(all_cookie));
+        if (window.TencentNews && window.TencentNews.showNativeLoginWithType) {
+            if(start == 0||start == 1){
+                checkLoginType();
+            }
+            if(start == 2){
+                window.TencentNews.showNativeLoginWithType("qqorweixin", "checkLoginEndCallBack", "check login type");
+            }
+
+        }
+        else {
+            alert("亲爱的大浙网友，如果您已报名，我们会尽快与您取得联系！");
+            $('.my-act').removeClass('curr-nav');
+        }
+    }
+
+    function islogin(all_cookie){
+        var prefix = 'uin=';
+        var start = all_cookie.indexOf('uin');
+        var val = '';
+        if(start == -1){
+        }else{
+            var end = all_cookie.indexOf(";",start+prefix.length);
+            if(end == -1){
+                end = all_cookie.length;
+            }
+            val = all_cookie.substring(start+prefix.length,end);
+        }
+
+        return val;
+    }
+    function isloginX(all_cookie){
+        var prefix = 'logintype=';
+        var start = all_cookie.indexOf('logintype');
+        var val = '';
+        if(start == -1){
+        }else{
+            var end = all_cookie.indexOf(";",start+prefix.length);
+            if(end == -1){
+                end = all_cookie.length;
+            }
+            val = all_cookie.substring(start+prefix.length,end);
+        }
+
+        return val;
+    }
+    function isweixin(all_cookie){
+        var prefix = 'openid=';
+        var start = all_cookie.indexOf('openid');
+        var val = '';
+        if(start == -1){
+        }else{
+            var end = all_cookie.indexOf(";",start+prefix.length);
+            if(end == -1){
+                end = all_cookie.length;
+            }
+            val = all_cookie.substring(start+prefix.length,end);
+        }
+        return val;
+    }
+
+    function pullUpAction() {
+        if(pageNum == 1){
+            $('#act-list').html('');
+            $('#spin-box').show();
+            mainScroll.y = 0;
+            $('#scroller').css('transform','translate(0px, 0px) scale(1) translateZ(0px)');
+            spinner.spin(target);
+            mainScroll.refresh();
+        }
+        if(postStatus) {
+            postStatus = false;
+
+            url = 'http://vip.zjqq.mobi/app/list.html?page='+ pageNum + '&type=' + pageType + '&time=' + pageTime;
+
+            $.ajax({
+                type: "get",
+                async: false,
+                url: url,
+                dataType: "jsonp",
+                jsonpCallback: "success_jsonpCallback",
+                error: function (xmlHttp, status, errorThrown) {
+                },
+                success: function (data) {
+
+                    /*lilylv start*/
+                    if(data.data=='empty' && pageNum == 1){
+                        $('#act-list').html('<h1 class="no-more">目前没有这类活动</h1>');
+                        mainScroll.refresh();
+                        pullUpEl.querySelector('.pullUpLabel').innerHTML = '没有更多啦...';
+                    }
+                    else if(data.data=='empty' && pageNum !== 1){
+                        mainScroll.refresh();
+                        pullUpEl.querySelector('.pullUpLabel').innerHTML = '没有更多啦...';
+                    }else{
+                        /*lilylv end*/
+                        $('#actArchiveTemplate').tmpl(data.data).appendTo('#act-list');
+                        if(Object.keys(data.data).length >= 6){
+                            $('#pullUp').show();
+                        }
+                        mainScroll.refresh();
+
+                        if(pageNum == 1){
+                            ajaxData.data = data.data;
+                        }else{
+                            for(var i=0;i<data.data.length;i++){
+                                ajaxData.data.push(data.data[i]);
+                            }
+                        }
+                        pageNum++;
+                        /*lilylv start*/
+                    }
+                    /*lilylv end*/
+                },
+                complete:function(){
+                    $('#spin-box').hide();
+                    spinner.stop();
+                    postStatus = true;
+                }
+            });
+        }
+    }
+    function loaded() {
+        setTimeout(function(){
+            if(window.TencentNews && window.TencentNews.setShareArticleInfo){
+                window.TencentNews.setShareArticleInfo('找活动——海量活动等你来玩', '找活动——海量活动等你来玩', '精彩活动轻松参与，奖品福利拿不停', window.location.href, 'http://mat1.gtimg.com/zj/css/app/share_02_new.jpg');
+            }
+        },1000);
+        addBoss();
+        pullUpEl = document.getElementById('pullUp');
+        pullUpOffset = pullUpEl.offsetHeight;
+        typeScroll = new iScroll('type-list', {
+            vScrollbar: false
+        });
+        mainScroll = new iScroll('main_content', {
+            useTransition: false,
+            snap: false,
+            vScrollbar: false,
+            hScrollbar: false,
+            onRefresh: function () {
+                if (pullUpEl.className.match('loading')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多...';
+                }
+
+//                spinner.stop();
+//                $('#spin-box').hide();
+            },
+            onScrollMove: function () {
+                if (this.y < (this.maxScrollY - 5) && !pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'flip';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '放开刷新....';
+                    this.maxScrollY = this.maxScrollY;
+                } else if (this.y > (this.maxScrollY + 5) && pullUpEl.className.match('flip')) {
+                    pullUpEl.className = '';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多....';
+                    this.maxScrollY = pullUpOffset;
+                }
+            },
+            onScrollEnd: function () {
+                if (pullUpEl.className.match('flip')) {
+                    pullUpEl.className = 'loading';
+                    pullUpEl.querySelector('.pullUpLabel').innerHTML = '加载中...';
+                    pullUpAction();	// Execute custom function (ajax call?)
+                }
+            },
+            onScrollStart:function(){
+                this.refresh();
+            }
+        });
+        drawData();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(checkNetWork(loaded()), 0); }, false);
+
+    $(document).on('click', '.sel-top',function(){
+        var hi = $(this).siblings('.sel-cont');
+        var down = $(this).find('.sel-down');
+        if(down.hasClass('up')){
+            down.removeClass('up');
+        }else{
+            down.addClass('up');
+        }
+        hi.slideToggle(function(){
+            popScroll.refresh();
+        });
+    });
+    $(document).on('click', '.sel-box',function(){
+        var otherSel = $(this).siblings('.sel-box');
+        var pType = $(this).attr('data-type');
+        var pTime = $(this).attr('data-time');
+        var navType;
+        if($(this).hasClass('curr-sel')){
+            return;
+        }else{
+            otherSel.removeClass('curr-sel');
+            $(this).addClass('curr-sel');
+            if(pType){
+                newType = pType;
+                navType = "type";
+            }else if(pTime){
+                newTime = pTime;
+                navType = "time";
+            }
+        }
+        updateList(navType);
+    });
+    $(document).on('touchend', '.nv',function(){
+        var nav = $(this).attr('data-nav');
+        if($(this).hasClass('curr-nav')){
+            $( '.' + nav).hide();
+            $( '.black-layer').hide();
+            $(this).removeClass('curr-nav');
+        }else{
+            $( '.nav-cont').hide();
+            $( '.black-layer').show();
+            $( '.' + nav).show();
+            typeScroll.refresh();
+            $(this).addClass('curr-nav');
+            $(this).siblings('.nav-box').removeClass('curr-nav');
+            var _title = nav=='nav-time'?'acttime':(nav == 'nav-type'?'actstyle':'myactivity');
+            send_boss(_title,'activityTabClick','activityList','activityTab');//导航点击
+        }
+    });
+    $(document).on('click', '.black-layer',function(){
+        hideNav();
+    });
+    $(document).on('touchstart', '.my-act',function(){
+        hideNav();
+        $(this).addClass('curr-nav');
+    });
+
+    $(document).on('touchstart', '.my-act',function(){
+        checkLogin();
+    });
+    $(document).on('click', '.nac-box',function(){
+        ajaxData.exTime = (new Date()).valueOf();
+        ajaxData.pageNum = pageNum;
+        ajaxData.scrollY = mainScroll.y;
+        ajaxData.fromCache = 'false';
+        ajaxData.pageType = pageType;
+        ajaxData.pageTime = pageTime;
+        //   var _url = $(this).attr('href');
+        //  var _id = $(this).attr('data-id');
+        //   var _title = $(this).find('.nac-title').text();
+        //   send_boss('活动列表','fx','列表报名按钮',_title,_url,_id,'list');
+        localStorage.setItem('zj_qq_actData',JSON.stringify(ajaxData));
+    });
+    function drawData(){
+        if(localStorage.getItem('zj_qq_actData')){
+            var dpData = localStorage.getItem('zj_qq_actData');
+            ajaxData = JSON.parse(dpData);
+            if(ajaxData.fromCache == 'true'){
+                $('#actArchiveTemplate').tmpl(ajaxData.data).appendTo('#act-list');
+                mainScroll.y = ajaxData.scrollY;
+                pageNum = ajaxData.pageNum;
+                pageTime = ajaxData.pageTime;
+                pageType = ajaxData.pageType;
+                $('#scroller').css('transform','translate(0px, '+ajaxData.scrollY+'px) scale(1) translateZ(0px)');
+                $('#pullUp').show();
+                spinner.stop();
+                $('#spin-box').hide();
+                mainScroll.refresh();
+                ajaxData.fromCache = 'false';
+                localStorage.setItem('zj_qq_actData',JSON.stringify(ajaxData));
+            }else{
+                pullUpAction();
+            }
+        }else{
+            pullUpAction ();
+        }
+    }
+    function hideNav(){
+        $( '.nav-cont').hide();
+        $( '.black-layer').hide();
+        $('.nav-box').removeClass('curr-nav');
+    }
+    function updateList(navType){
+        var selectedWords = $('#'+navType+'-list .curr-sel .sel-type').html();
+        var loadStatus = false;
+        if(selectedWords == '全部'){
+            if(navType == 'time')
+                selectedWords = '时间';
+            else
+                selectedWords = '分类';
+        }
+        $('.'+navType+'-nav .nav-words').html(selectedWords);
+        if(pageTime !== newTime){
+            pageTime = newTime;
+            loadStatus = true;
+        }
+        if(pageType !== newType){
+            pageType = newType;
+            loadStatus = true;
+        }
+        if(loadStatus){
+            $('#top-box').html('');
+            $('#act-list').html('');
+            $('#spin-box').show(function(){
+                mainScroll.refresh();
+                spinner.spin(target);
+            });
+            pageNum = 1;
+            pullUpEl.querySelector('.pullUpLabel').innerHTML = '上拉加载更多...';
+            $('#pullUp').hide();
+            pullUpAction();
+        }
+        hideNav();
+    }
+
+    //滑动到顶部
+    function _jsBridgePageScroll2Top_(){
+        mainScroll.scrollTo(0,0,500);
+    }
+
+    function addBoss(){
+        if(window.TencentNews){
+            sSource = 'appClient';
+        }else if(typeof WeixinJSBridge !== 'undefined'){
+            sSource = 'weixinClient';
+        }else{
+            sSource = 'Others';
+        }
+        if(localStorage.getItem('zj_qq_news_suid')){
+            sUid = localStorage.getItem('zj_qq_news_suid');
+        }else{
+            var timestamp = new Date().getTime();
+            sUid = timestamp + RndNum(4);
+            localStorage.setItem('zj_qq_news_suid',sUid);
+        }
+        send_boss('','','activityList','','');//页面流量
+        function RndNum(n){
+            var rnd="";
+            for(var i=0;i<n;i++)
+                rnd+=Math.floor(Math.random()*10);
+            return rnd;
+        }
+    }
+</script>
+<script id="actArchiveTemplate" type="text/x-jquery-tmpl">
+<a href="http://zj.qq.com/APP/android/act_detail.htm?deal_id=${id}{{if status == 0}}&formshow=no{{/if}}" class="nac-box" data-id="${id}">
+    <div class="nac-img" style="background-image:url('${logo}');">
+        <div class="base-box">已报名:<span class="base-num">${base_num}</span>人</div>
+        <div class="notice-box {{if status == 0}}finished{{/if}}"></div>
+    </div>
+    <div class="nac-title">
+        <div class="nac-title-cont">${activity_name}</div>
+        {{if activity_ifpay == 1}}
+            <div class="need-pay">本活动需要支付:  ￥${activity_money}</div>
+        {{/if}}
+    </div>
+    <div class="nac-bottom">
+        <div class="nac-line">
+            <span class="nac-words time n-time">${activity_start_date} 至 ${activity_end_date}</span>
+        </div>
+        <div class="nac-line">
+            <span class="nac-words addr n-addr">${activity_address}</span>
+        </div>
+        <div class="apply-button">
+            {{if status == 0}}
+            详情
+            {{else}}
+            报名
+            {{/if}}
+        </div>
+    </div>
+</a>
+</script>
+</body>
+<script type="text/javascript"  src="http://mat1.gtimg.com/zj/css/app/api/prism.js"></script>
+<script type="text/javascript" src="http://mat1.gtimg.com/zj/css/app/api/check_network.js"></script>
+<script type="text/javascript" src="http://team.zjqq.mobi/count/add.js"></script>
+</html>

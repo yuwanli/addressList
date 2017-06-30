@@ -1,0 +1,55 @@
+.page1 .title {
+  background-color: #1578FF;
+  color: #fff;
+}
+.page1 .bar {
+  z-index: 100;
+}
+.page1 .infinite-scroll-preloader {
+  opacity: 0;
+}
+.page1 .col40 {
+  position: absolute;
+  left: 0;
+  top: 2.2rem;
+  bottom: 0;
+  height: 100%;
+  width: 40%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page1 .col40 .list-container .item {
+  border-right: 1px solid #E7E7E7 ;
+  background-image: url(../images/icon_class.png);
+  background-position: 0.5rem center;
+  background-size: 1.6rem 1.6rem;
+  background-repeat: no-repeat;
+}
+.page1 .col40 .list-container .item.active {
+  background-color: #fff;
+  background-image: url(../images/icon_class_active.png);
+}
+.page1 .col60 {
+  position: absolute;
+  left: 40%;
+  top: 2.2rem;
+  bottom: 0;
+  height: 100%;
+  width: 60%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page1 .col60 .list-container .item {
+  background-color: #fff;
+}
+.page1 .list-block {
+  margin: 0;
+}
+.page1 .list-container .item {
+  height: 2.5rem;
+  line-height: 2.5rem;
+  background-color: #EEEEEE;
+  box-sizing: border-box;
+  border-bottom: 1px solid #E7E7E7;
+  text-indent: 2.5rem;
+}
